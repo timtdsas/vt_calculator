@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VT Investment Calculator V5.5</title>
+
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent-color: #0ea5e9;
+            --accent-glow: rgba(14, 165, 233, 0.3);
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 1024px) {
+            .grid {
+                grid-template-columns: 350px 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        /* Updated Input Styles */
+        input[type="tel"],
+        input[type="number"] {
+            background: #f1f5f9;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 1rem;
+            transition: all 0.2s;
+            -moz-appearance: textfield;
+            /* Firefox */
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+            background: #fff;
+        }
+
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            padding: 0.25rem 0;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        input:checked+.slider {
+            background-color: var(--accent-color);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(20px);
+        }
+
+        .chart-wrapper {
+            height: 600px;
+            width: 100%;
+            position: relative;
+        }
+
+        .big-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .lang-switch {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-secondary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .lang-switch:hover {
+            color: var(--accent-color);
+            background: #f8fafc;
+        }
+
+        .footer-info {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .footer-info h3 {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-info ul {
+            padding-left: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo, useEffect, useRef } = React;
+
+        // --- Translations ---
+        const i18n = {
+            en: {
+                title: "Global Index Fund (VT) Calculator",
+                subtitle: "Visualize long-term compounding with extreme scenarios.",
+                profile: "Your Profile",
+                age: "Current Age",
+                capital: "Initial Capital ($)",
+                monthly: "Monthly Contribution ($)",
+                retire: "Retirement Age",
+                options: "Chart Options",
+                median: "Median (50%)",
+                mean: "Mean (Average)",
+                sd1: "±1 SD (68%)",
+                sd2: "±2 SD (95%)",
+                sd3: "±3 SD (99.7%)",
+                sd4: "±4 SD (Rare)",
+                sd5: "±5 SD (Aliens 👽)",
+                fixedDeposit: "Fixed Deposit (1.25%)",
+                inflation: "Inflation Adjusted (Real Value)",
+                projected: "Projected Wealth",
+                sims: "Monte Carlo Simulation (5000 runs)",
+                atAge: "At Age",
+                medianOutcome: "Median Outcome",
+                sourceTitle: "Data Sources & Methodology",
+                sourceDesc: "This calculator uses Monte Carlo simulation to project future portfolio values based on historical characteristics of global equity markets.",
+                sourceList: [
+                    "Expected Return (Mean): 8% nominal annual return. Based on long-term historical averages of global equities (e.g., MSCI ACWI, FTSE Global All Cap).",
+                    "Volatility (Standard Deviation): 15% annualized volatility.",
+                    "Fixed Deposit: Assumed 1.25% annual interest rate.",
+                    "Inflation: Assumed 3% annual inflation rate for Real Value calculations.",
+                    "Model: Geometric Brownian Motion (Log-normal distribution) with monthly rebalancing.",
+                    "Note: Past performance is not indicative of future results. This is a simulation for educational purposes."
+                ]
+            },
+            zh: {
+                title: "全球指數型基金 (VT) 投資試算",
+                subtitle: "視覺化長期複利效應，包含極端市場情境模擬。",
+                profile: "個人設定",
+                age: "目前年齡",
+                capital: "起始資金 (新台幣)",
+                monthly: "每月投入 (新台幣)",
+                retire: "預計退休年齡",
+                options: "圖表選項",
+                median: "中位數 (50%)",
+                mean: "平均數 (Mean)",
+                sd1: "±1 標準差 (68%)",
+                sd2: "±2 標準差 (95%)",
+                sd3: "±3 標準差 (99.7%)",
+                sd4: "±4 標準差 (極端)",
+                sd5: "±5 標準差 (外星人降臨 👽)",
+                fixedDeposit: "定存對照 (年息 1.25%)",
+                inflation: "扣除通膨 (實質購買力)",
+                projected: "預估資產",
+                sims: "蒙地卡羅模擬 (5000 次)",
+                atAge: "於",
+                medianOutcome: "中位數結果",
+                sourceTitle: "資料來源與計算方法",
+                sourceDesc: "本計算機使用蒙地卡羅模擬法 (Monte Carlo Simulation)，基於全球股市的歷史特性來推估未來資產變化。",
+                sourceList: [
+                    "預期年化報酬率 (Mean)：設定為 8%。此數據參考全球股市 (如 MSCI ACWI, VT 追蹤之 FTSE Global All Cap) 的長期歷史名目報酬率。",
+                    "波動率 (Standard Deviation)：設定為 15%。此為全球廣泛分散投資組合的長期平均波動程度。",
+                    "定存對照：假設年利率為 1.25%。",
+                    "通膨調整：假設年通貨膨脹率為 3%，用於計算實質購買力。",
+                    "計算模型：幾何布朗運動 (Geometric Brownian Motion)，採對數常態分佈 (Log-normal distribution) 並以月為單位進行複利計算。",
+                    "聲明：過去績效不代表未來表現。本工具僅供教育與規劃參考，並非投資建議。"
+                ]
+            }
+        };
+
+        // --- Logic ---
+        const calculateProjection = (currentAge, initialCapital, monthlyContribution, retirementAge) => {
+            const yearsToRetire = Math.max(0, retirementAge - currentAge);
+            const numSimulations = 5000;
+            const mu = 0.08;
+            const sigma = 0.15;
+            const monthlyMu = mu / 12;
+            const monthlySigma = sigma / Math.sqrt(12);
+
+            const fdRate = 0.0125;
+            const monthlyFdRate = fdRate / 12;
+
+            let simulations = new Float64Array(numSimulations).fill(initialCapital);
+            let fdValue = initialCapital;
+
+            const results = [];
+
+            const initialPoint = {
+                year: new Date().getFullYear(),
+                age: currentAge,
+                mean: initialCapital,
+                median: initialCapital,
+                fixedDeposit: initialCapital
+            };
+            for (let i = 1; i <= 5; i++) {
+                initialPoint[`sd${i}_upper`] = initialCapital;
+                initialPoint[`sd${i}_lower`] = initialCapital;
+            }
+            results.push(initialPoint);
+
+            for (let year = 1; year <= yearsToRetire; year++) {
+                for (let m = 0; m < 12; m++) {
+                    fdValue = fdValue * (1 + monthlyFdRate) + monthlyContribution;
+                }
+
+                for (let month = 0; month < 12; month++) {
+                    for (let i = 0; i < numSimulations; i++) {
+                        const u1 = Math.random();
+                        const u2 = Math.random();
+                        const z = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+                        const drift = (mu - 0.5 * sigma * sigma) / 12;
+                        const shock = monthlySigma * z;
+                        const monthlyReturn = Math.exp(drift + shock);
+                        simulations[i] = simulations[i] * monthlyReturn + monthlyContribution;
+                    }
+                }
+
+                const sorted = Float64Array.from(simulations).sort();
+                const getPercentile = (p) => sorted[Math.floor(p * (numSimulations - 1))];
+                const mean = simulations.reduce((a, b) => a + b, 0) / numSimulations;
+
+                results.push({
+                    year: new Date().getFullYear() + year,
+                    age: currentAge + year,
+                    mean: mean,
+                    median: getPercentile(0.5),
+                    fixedDeposit: fdValue,
+                    sd1_upper: getPercentile(0.84134),
+                    sd1_lower: getPercentile(0.15866),
+                    sd2_upper: getPercentile(0.97725),
+                    sd2_lower: getPercentile(0.02275),
+                    sd3_upper: getPercentile(0.99865),
+                    sd3_lower: getPercentile(0.00135),
+                    sd4_upper: getPercentile(0.99997),
+                    sd4_lower: getPercentile(0.00003),
+                    sd5_upper: getPercentile(0.9999997) || sorted[numSimulations - 1],
+                    sd5_lower: getPercentile(0.0000003) || sorted[0],
+                });
+            }
+            return results;
+        };
+
+        const formatCurrency = (value, lang) => {
+            if (lang === 'en') {
+                if (value >= 1000000000000) return `$${(value / 1000000000000).toFixed(2)}T`;
+                if (value >= 1000000000) return `$${(value / 1000000000).toFixed(2)}B`;
+                if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+                if (value >= 1000) return `$${(value / 1000).toFixed(0)}k`;
+                return `$${value.toFixed(0)}`;
+            } else {
+                if (value >= 1000000000000) return `${(value / 1000000000000).toFixed(2)}兆`;
+                if (value >= 100000000) return `${(value / 100000000).toFixed(1)}億`;
+                if (value >= 10000) return `${(value / 10000).toFixed(0)}萬`;
+                return `${value.toFixed(0)}`;
+            }
+        };
+
+        // --- Chart Component ---
+        const ChartComponent = ({ data, toggles, lang }) => {
+            const canvasRef = useRef(null);
+            const chartInstance = useRef(null);
+
+            const crosshairPlugin = {
+                id: 'crosshair',
+                afterDraw: (chart) => {
+                    if (chart.tooltip?._active?.length) {
+                        const ctx = chart.ctx;
+                        const x = chart.tooltip._active[0].element.x;
+                        const topY = chart.scales.y.top;
+                        const bottomY = chart.scales.y.bottom;
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.moveTo(x, topY);
+                        ctx.lineTo(x, bottomY);
+                        ctx.lineWidth = 1;
+                        ctx.strokeStyle = '#94a3b8';
+                        ctx.setLineDash([5, 5]);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }
+            };
+
+            useEffect(() => {
+                if (!canvasRef.current) return;
+
+                const ctx = canvasRef.current.getContext('2d');
+                if (chartInstance.current) chartInstance.current.destroy();
+
+                const labels = data.map(d => d.age);
+                const datasets = [];
+
+                const addBand = (level, color, order) => {
+                    if (toggles[`showSD${level}`]) {
+                        datasets.push({
+                            label: `+${level} SD`,
+                            data: data.map(d => d[`sd${level}_upper`]),
+                            borderColor: color.replace('0.1)', '0.5)').replace('0.15)', '0.6)').replace('0.2)', '0.7)').replace('0.25)', '0.8)'),
+                            borderWidth: 1,
+                            backgroundColor: color,
+                            fill: '+1',
+                            pointRadius: 0,
+                            order: order
+                        });
+                        datasets.push({
+                            label: `-${level} SD`,
+                            data: data.map(d => d[`sd${level}_lower`]),
+                            borderColor: color.replace('0.1)', '0.5)').replace('0.15)', '0.6)').replace('0.2)', '0.7)').replace('0.25)', '0.8)'),
+                            borderWidth: 1,
+                            backgroundColor: 'transparent',
+                            fill: false,
+                            pointRadius: 0,
+                            order: order
+                        });
+                    }
+                };
+
+                addBand(5, 'rgba(100, 116, 139, 0.1)', 20);
+                addBand(4, 'rgba(168, 85, 247, 0.1)', 18);
+                addBand(3, 'rgba(248, 113, 113, 0.15)', 16);
+                addBand(2, 'rgba(251, 191, 36, 0.2)', 14);
+                addBand(1, 'rgba(56, 189, 248, 0.25)', 12);
+
+                if (toggles.showMean) {
+                    datasets.push({
+                        label: i18n[lang].mean,
+                        data: data.map(d => d.mean),
+                        borderColor: '#22c55e',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0,
+                        order: 2
+                    });
+                }
+
+                if (toggles.showMedian) {
+                    datasets.push({
+                        label: i18n[lang].median,
+                        data: data.map(d => d.median),
+                        borderColor: '#0ea5e9',
+                        backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                        borderWidth: 3,
+                        fill: false,
+                        pointRadius: 0,
+                        order: 1
+                    });
+                }
+
+                if (toggles.showFixedDeposit) {
+                    datasets.push({
+                        label: i18n[lang].fixedDeposit,
+                        data: data.map(d => d.fixedDeposit),
+                        borderColor: '#64748b',
+                        borderWidth: 2,
+                        borderDash: [2, 2],
+                        fill: false,
+                        pointRadius: 0,
+                        order: 0
+                    });
+                }
+
+                chartInstance.current = new Chart(ctx, {
+                    type: 'line',
+                    data: { labels, datasets },
+                    plugins: [crosshairPlugin],
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                titleColor: '#1e293b',
+                                bodyColor: '#334155',
+                                borderColor: '#e2e8f0',
+                                borderWidth: 1,
+                                padding: 16,
+                                titleFont: { size: 16, weight: 'bold' },
+                                bodyFont: { size: 14 },
+                                boxPadding: 6,
+                                usePointStyle: true,
+                                callbacks: {
+                                    label: function (context) {
+                                        let label = context.dataset.label || '';
+                                        if (context.parsed.y !== null) {
+                                            return `${label}: ${formatCurrency(context.parsed.y, lang)}`;
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                title: { display: true, text: i18n[lang].age }
+                            },
+                            y: {
+                                grid: { color: '#f1f5f9' },
+                                ticks: { callback: (v) => formatCurrency(v, lang) }
+                            }
+                        }
+                    }
+                });
+
+                return () => {
+                    if (chartInstance.current) chartInstance.current.destroy();
+                };
+            }, [data, toggles, lang]);
+
+            return <canvas ref={canvasRef} />;
+        };
+
+        const Toggle = ({ label, checked, onChange, color }) => (
+            <div className="toggle-row">
+                <span style={{ color: checked ? color : '#64748b', fontWeight: checked ? 600 : 400 }}>{label}</span>
+                <label className="switch">
+                    <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+                    <span className="slider" style={{ backgroundColor: checked ? color : '#cbd5e1' }}></span>
+                </label>
+            </div>
+        );
+
+        // --- Improved NumberInput for Mobile (V5.5) ---
+        const NumberInput = ({ value, onChange }) => {
+            const [localValue, setLocalValue] = useState(value.toString());
+
+            useEffect(() => {
+                // If local is empty and value is 0, keep it empty (don't sync)
+                if (localValue === '' && value === 0) return;
+
+                // Otherwise sync if different
+                if (parseFloat(localValue) !== value) {
+                    setLocalValue(value.toString());
+                }
+            }, [value]);
+
+            const handleChange = (e) => {
+                const val = e.target.value;
+                setLocalValue(val);
+
+                if (val === '') {
+                    onChange(0);
+                    return;
+                }
+
+                const num = parseFloat(val);
+                if (!isNaN(num)) {
+                    onChange(num);
+                }
+            };
+
+            const handleFocus = (e) => {
+                e.target.select();
+                setTimeout(() => { e.target.select(); }, 50);
+            };
+
+            return (
+                <input
+                    type="tel"
+                    inputMode="decimal"
+                    pattern="[0-9]*"
+                    placeholder="0"
+                    value={localValue}
+                    onChange={handleChange}
+                    onFocus={handleFocus}
+                    onClick={handleFocus}
+                />
+            );
+        };
+
+        const App = () => {
+            const [lang, setLang] = useState('zh');
+            const t = i18n[lang];
+
+            const [age, setAge] = useState(30);
+            const [initialCapital, setInitialCapital] = useState(100000);
+            const [monthlyContribution, setMonthlyContribution] = useState(10000);
+            const [retirementAge, setRetirementAge] = useState(65);
+
+            const [toggles, setToggles] = useState({
+                showMedian: true,
+                showMean: false,
+                showSD1: true,
+                showSD2: false,
+                showSD3: false,
+                showSD4: false,
+                showSD5: false,
+                showFixedDeposit: true,
+                useInflationAdjusted: false
+            });
+
+            const updateToggle = (key, val) => setToggles(prev => ({ ...prev, [key]: val }));
+
+            const rawData = useMemo(() => {
+                return calculateProjection(age, initialCapital, monthlyContribution, retirementAge);
+            }, [age, initialCapital, monthlyContribution, retirementAge]);
+
+            const data = useMemo(() => {
+                if (!toggles.useInflationAdjusted) return rawData;
+
+                const inflationRate = 0.03;
+                return rawData.map((point, index) => {
+                    const discountFactor = Math.pow(1 + inflationRate, index);
+                    const adjusted = { ...point };
+                    ['mean', 'median', 'fixedDeposit',
+                        'sd1_upper', 'sd1_lower', 'sd2_upper', 'sd2_lower',
+                        'sd3_upper', 'sd3_lower', 'sd4_upper', 'sd4_lower',
+                        'sd5_upper', 'sd5_lower'].forEach(key => {
+                            if (adjusted[key] !== undefined) {
+                                adjusted[key] = adjusted[key] / discountFactor;
+                            }
+                        });
+                    return adjusted;
+                });
+            }, [rawData, toggles.useInflationAdjusted]);
+
+            const finalMedian = data[data.length - 1]?.median || 0;
+
+            return (
+                <div className="container">
+                    <button className="lang-switch" onClick={() => setLang(l => l === 'en' ? 'zh' : 'en')}>
+                        {lang === 'en' ? '中文' : 'English'}
+                    </button>
+
+                    <header>
+                        <h1>{t.title}</h1>
+                        <p className="subtitle">{t.subtitle}</p>
+                    </header>
+
+                    <div className="grid">
+                        <div className="controls">
+                            <div className="card">
+                                <h2 style={{ color: '#0ea5e9', marginTop: 0, fontSize: '1.25rem' }}>{t.profile}</h2>
+                                <div className="input-group">
+                                    <label>{t.age}</label>
+                                    <NumberInput value={age} onChange={setAge} />
+                                </div>
+                                <div className="input-group">
+                                    <label>{t.capital}</label>
+                                    <NumberInput value={initialCapital} onChange={setInitialCapital} />
+                                </div>
+                                <div className="input-group">
+                                    <label>{t.monthly}</label>
+                                    <NumberInput value={monthlyContribution} onChange={setMonthlyContribution} />
+                                </div>
+                                <div className="input-group">
+                                    <label>{t.retire}</label>
+                                    <NumberInput value={retirementAge} onChange={setRetirementAge} />
+                                </div>
+                            </div>
+
+                            <div className="card" style={{ marginTop: '1.5rem' }}>
+                                <h2 style={{ color: '#6366f1', marginTop: 0, fontSize: '1.25rem' }}>{t.options}</h2>
+                                <Toggle label={t.fixedDeposit} checked={toggles.showFixedDeposit} onChange={v => updateToggle('showFixedDeposit', v)} color="#64748b" />
+                                <Toggle label={t.inflation} checked={toggles.useInflationAdjusted} onChange={v => updateToggle('useInflationAdjusted', v)} color="#ef4444" />
+                                <div style={{ height: '1px', background: '#e2e8f0', margin: '0.5rem 0' }}></div>
+                                <Toggle label={t.median} checked={toggles.showMedian} onChange={v => updateToggle('showMedian', v)} color="#0ea5e9" />
+                                <Toggle label={t.mean} checked={toggles.showMean} onChange={v => updateToggle('showMean', v)} color="#22c55e" />
+                                <div style={{ height: '1px', background: '#e2e8f0', margin: '0.5rem 0' }}></div>
+                                <Toggle label={t.sd1} checked={toggles.showSD1} onChange={v => updateToggle('showSD1', v)} color="#38bdf8" />
+                                <Toggle label={t.sd2} checked={toggles.showSD2} onChange={v => updateToggle('showSD2', v)} color="#fbbf24" />
+                                <Toggle label={t.sd3} checked={toggles.showSD3} onChange={v => updateToggle('showSD3', v)} color="#f87171" />
+                                <Toggle label={t.sd4} checked={toggles.showSD4} onChange={v => updateToggle('showSD4', v)} color="#a855f7" />
+                                <Toggle label={t.sd5} checked={toggles.showSD5} onChange={v => updateToggle('showSD5', v)} color="#64748b" />
+                            </div>
+                        </div>
+
+                        <div className="main-chart">
+                            <div className="card" style={{ height: '100%' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem' }}>
+                                    <div>
+                                        <h2 style={{ margin: 0, fontSize: '1.5rem' }}>{t.projected}</h2>
+                                        <span style={{ color: '#64748b', fontSize: '0.9rem' }}>{t.sims}</span>
+                                    </div>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div style={{ color: '#64748b', fontSize: '0.9rem' }}>{t.atAge} {retirementAge}</div>
+                                        <div className="big-number">{formatCurrency(finalMedian, lang)}</div>
+                                        <div style={{ color: '#64748b', fontSize: '0.8rem' }}>{t.medianOutcome}</div>
+                                    </div>
+                                </div>
+
+                                <div className="chart-wrapper">
+                                    <ChartComponent
+                                        data={data}
+                                        toggles={toggles}
+                                        lang={lang}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="footer-info">
+                        <h3>{t.sourceTitle}</h3>
+                        <p>{t.sourceDesc}</p>
+                        <ul>
+                            {t.sourceList.map((item, idx) => <li key={idx}>{item}</li>)}
+                        </ul>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>
